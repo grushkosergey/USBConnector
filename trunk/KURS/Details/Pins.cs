@@ -9,23 +9,30 @@ namespace KURS.Details
 {
     internal class Pins : Detail
     {
+        // Толщина стенки корпуса
+        protected const double thickness = 0.5;
+        // Толщина контактной части
+        protected const double contactHeight = 1.5; 
+
         /// <summary>
         /// Построение пинов.
         /// </summary>
         /// <param name="doc3D">Докyмент КОМПАС-3D</param>
         /// <param name="data">Параметры разъема</param>
         /// 
-
-
         public override void Build(ksDocument3D doc3D, Dictionary<Parametr, double> data)
         {
-            Part = (ksPart)doc3D.GetPart((short)Part_Type.pTop_Part);	// Новый компонент.
+            // Новый компонент.
+            Part = (ksPart)doc3D.GetPart((short)Part_Type.pTop_Part);	
             if (Part != null)
             {
-                var countPins = (data[Parametr.NumberOfPins]); // Количество пинов задается пользователем
+                // Количество пинов задается пользователем
+                var countPins = (data[Parametr.NumberOfPins]); 
                 var countSpace = countPins + 1;
-                var pin = ((data[Parametr.BodyWidth] - (tolsh * 2)) - countPins) / countSpace; // учитывая размер каждого = 1, расчет расстановки
-                var startPinsX = tolsh + pin; //Начало расстановки пинов по X
+                // учитывая размер каждого = 1, расчет расстановки
+                var pin = ((data[Parametr.BodyWidth] - (thickness * 2)) - countPins) / countSpace;
+                //Начало расстановки пинов по X
+                var startPinsX = thickness + pin; 
 
                 for (int i = 0; i < countPins; i++)
                 {
@@ -39,19 +46,21 @@ namespace KURS.Details
         //Построение эскиза
         public void BuildPin(Dictionary<Parametr, double> data, double startPinsX)
         {
+            var entitySketch = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_sketch);
 
-            var entityContactSketch = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_sketch);
-            if (entityContactSketch != null)
+            if (entitySketch != null)
             {
-                entityContactSketch.name = @"pin";
+                entitySketch.name = @"pin";
                 // Интерфейс свойств эскиза.
-                var sketchDef = (ksSketchDefinition)entityContactSketch.GetDefinition();
+                var sketchDef = (ksSketchDefinition)entitySketch.GetDefinition();
                 if (sketchDef != null)
                 {
                     // Получим интерфейс базовой плоскости XOY.
                     var basePlane = (ksEntity)Part.GetDefaultEntity((short)Obj3dType.o3d_planeXOY);
-                    sketchDef.SetPlane(basePlane);	// Установим плоскость XOY базовой для эскиза.
-                    entityContactSketch.Create();			// Создадим эскиз.
+                    // Установим плоскость XOY базовой для эскиза.
+                    sketchDef.SetPlane(basePlane);
+                    // Создадим эскиз.
+                    entitySketch.Create();			
                     //Интерфейс редактора эскиза.
                     var sketchEdit = (ksDocument2D)sketchDef.BeginEdit();
                     var pinHeight = 0.1;
@@ -62,37 +71,10 @@ namespace KURS.Details
                     sketchEdit.ksLineSeg(startPinsX + 1, contactHeight, startPinsX + 1, contactHeight + pinHeight, 1);
                     sketchEdit.ksLineSeg(startPinsX, contactHeight + pinHeight, startPinsX + 1, contactHeight + pinHeight, 1);
 
-
-                    sketchDef.EndEdit(); // Завершение редактирования эскиза.
-                    Extrusion(data, entityContactSketch); // Выдавить эскиз.
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Вырезать выдавливанием.
-        /// </summary>
-        /// <param name="data">Параметры разъема</param>
-        /// <param name="entity">Эскиз для вырезания выдавливанием</param>
-        private void Extrusion(Dictionary<Parametr, double> data, ksEntity entity)
-        {
-            // Интерфейс базовой операции выдавливания.
-            var entityExtr = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_baseExtrusion);
-            if (entityExtr != null)
-            {
-                entityExtr.name = @"Выдавливание тела";
-                // Интерфейс свойств базовой операции выдавливания.
-                var extrusionDef = (ksBaseExtrusionDefinition)entityExtr.GetDefinition();
-                if (extrusionDef != null)
-                {
-                    extrusionDef.directionType = (short)Direction_Type.dtNormal;   // Направление выдавливания.
-                    extrusionDef.SetSideParam(true, (short)End_Type.etBlind, data[Parametr.BodyDepth] - 0.3);
-                    extrusionDef.SetThinParam(false, 0, 0, 0);  // Без тонкой стенки.
-                    extrusionDef.SetSketch(entity); // Эскиз операции выдавливания.
-                    entityExtr.SetAdvancedColor(Color.YellowGreen.ToArgb(), .2, .3, .9, .0, 5, .8);  // Цвет пинов.
-
-                    entityExtr.Create();    // Создать операцию.
+                    // Завершение редактирования эскиза.
+                    sketchDef.EndEdit();
+                    // Выдавить эскиз.
+                    Extrusion(entitySketch, Direction_Type.dtNormal, data[Parametr.BodyDepth] - 0.3, Color.Gold); 
                 }
             }
         }

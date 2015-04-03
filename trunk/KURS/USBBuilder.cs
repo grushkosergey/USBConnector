@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using Kompas6API5;
 using KURS.Details;
-using KURS.Enumerations; 
+using KURS.Enumerations;
 
+using System.Windows.Forms;
 namespace KURS
 {
     /// <summary>
@@ -10,65 +11,23 @@ namespace KURS
     /// </summary>
     public class USBBuilder
     {
-        /// <summary>
-        /// Список деталей разъема.
-        /// </summary>
-        private readonly List<Detail> _parts = new List<Detail>
+        public void BuildParts(ksDocument3D doc3D, DataStorage data, USBType usbType)
         {
-            new TypeA(),
-            new ContactCut(),
-            new ContactPart(),
-            new Pins(),
-            new Corpus(),
-            new Wire(),
-            new TMUSB(),
-        };
-        
-        /// <summary>
-        /// Построение всех частей.
-        /// </summary>
-        /// <param name="doc3D">Докyмент КОМПАС-3D</param>
-        /// <param name="data">Параметры разъема</param>
-        public void BuildParts(ksDocument3D doc3D, Dictionary<Parametr, double> data)
-        {
-            foreach (var detail in _parts)
+            switch (usbType)
             {
-                detail.Build(doc3D, data);
+                case USBType.TypeA:
+                    foreach (var detail in data.PartsA.Parts)
+                    {
+                        detail.Build(doc3D, data.Parametrs);
+                    }
+                    break;
+                case USBType.TypeC:
+                    foreach (var detail in data.PartsC.Parts)
+                    {
+                        detail.Build(doc3D, data.Parametrs);
+                    }
+                    break;
             }
         }
     }
-
-    public class USBBuilderC
-    {
-
-        /// <summary>
-        /// Список составляющих разъема.
-        /// </summary>
-        private readonly List<Detail> _parts = new List<Detail>
-        {
-            new TypeC(),
-            new ContactCut(),
-            new ContactPartC(),
-            new ContactPart(),
-            new Pins(),
-            new PinsC(),
-            new Corpus(),
-            new Wire(),
-            new TMUSB(),
-        };
-
-        /// <summary>
-        /// Построение всех частей.
-        /// </summary>
-        /// <param name="doc3D">Докyмент КОМПАС-3D</param>
-        /// <param name="data">Параметры разъема</param>
-        public void BuildParts(ksDocument3D doc3D, Dictionary<Parametr, double> data)
-        {
-            foreach (var detail in _parts)
-            {
-                detail.Build(doc3D, data);
-            }
-        }
-    }
-
 }

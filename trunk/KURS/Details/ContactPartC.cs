@@ -9,6 +9,11 @@ namespace KURS.Details
 {
     internal class ContactPartC : Detail
     {
+        // Толщина стенки корпуса
+        protected const double thickness = 0.5;
+        // Толщина контактной части
+        protected const double contactHeight = 1.5; 
+
         /// <summary>
         /// Построение нижнней контактной части черного цвета.
         /// </summary>
@@ -16,62 +21,39 @@ namespace KURS.Details
         /// <param name="data">Параметры разъема</param>
         public override void Build(ksDocument3D doc3D, Dictionary<Parametr, double> data)
         {
-            Part = (ksPart)doc3D.GetPart((short)Part_Type.pTop_Part);	// Новый компонент.
+            // Новый компонент.
+            Part = (ksPart)doc3D.GetPart((short)Part_Type.pTop_Part);	
             if (Part != null)
             {
                 // Интерфейс создания эскиза.
 
-                var entityContactSketch = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_sketch);
-                if (entityContactSketch != null)
+                var entitySketch = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_sketch);
+                if (entitySketch != null)
                 {
-                    entityContactSketch.name = @"Контактная часть для пинов";
+                    entitySketch.name = @"Контактная часть для пинов";
                     // Интерфейс свойств эскиза.
-                    var sketchDef = (ksSketchDefinition)entityContactSketch.GetDefinition();
+                    var sketchDef = (ksSketchDefinition)entitySketch.GetDefinition();
                     if (sketchDef != null)
                     {
                         // Получим интерфейс базовой плоскости XOY.
                         var basePlane = (ksEntity)Part.GetDefaultEntity((short)Obj3dType.o3d_planeXOY);
-                        sketchDef.SetPlane(basePlane);	// Установим плоскость XOY базовой для эскиза.
-                        entityContactSketch.Create();			// Создадим эскиз.
+                        // Установим плоскость XOY базовой для эскиза.
+                        sketchDef.SetPlane(basePlane);
+                        // Создадим эскиз.
+                        entitySketch.Create();			
                         //Интерфейс редактора эскиза.
                         var sketchEdit = (ksDocument2D)sketchDef.BeginEdit();
 
                         //Линии для построения верхней контактной части
-                        sketchEdit.ksLineSeg(tolsh, data[Parametr.BodyHeight] - tolsh, data[Parametr.BodyWidth] - tolsh, data[Parametr.BodyHeight] - tolsh, 1);
-                        sketchEdit.ksLineSeg(tolsh, data[Parametr.BodyHeight] - tolsh, tolsh, data[Parametr.BodyHeight] - contactHeight, 1);
-                        sketchEdit.ksLineSeg(tolsh, data[Parametr.BodyHeight] - contactHeight, data[Parametr.BodyWidth] - tolsh, data[Parametr.BodyHeight] - contactHeight, 1);
-                        sketchEdit.ksLineSeg(data[Parametr.BodyWidth] - tolsh, data[Parametr.BodyHeight] - contactHeight, data[Parametr.BodyWidth] - tolsh, data[Parametr.BodyHeight] - tolsh, 1);
-                        sketchDef.EndEdit(); // Завершение редактирования эскиза.
-                        Extrusion(data, entityContactSketch); // Выдавить эскиз.
-
+                        sketchEdit.ksLineSeg(thickness, data[Parametr.BodyHeight] - thickness, data[Parametr.BodyWidth] - thickness, data[Parametr.BodyHeight] - thickness, 1);
+                        sketchEdit.ksLineSeg(thickness, data[Parametr.BodyHeight] - thickness, thickness, data[Parametr.BodyHeight] - contactHeight, 1);
+                        sketchEdit.ksLineSeg(thickness, data[Parametr.BodyHeight] - contactHeight, data[Parametr.BodyWidth] - thickness, data[Parametr.BodyHeight] - contactHeight, 1);
+                        sketchEdit.ksLineSeg(data[Parametr.BodyWidth] - thickness, data[Parametr.BodyHeight] - contactHeight, data[Parametr.BodyWidth] - thickness, data[Parametr.BodyHeight] - thickness, 1);
+                        // Завершение редактирования эскиза.
+                        sketchDef.EndEdit();
+                        // Выдавить эскиз.
+                        Extrusion(entitySketch, Direction_Type.dtNormal, data[Parametr.BodyDepth] - 0.01, Color.Black); 
                     }
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Вырезать выдавливанием.
-        /// </summary>
-        /// <param name="data">Параметры разъема</param>
-        /// <param name="entity">Эскиз для вырезания выдавливанием</param>
-        private void Extrusion(Dictionary<Parametr, double> data, ksEntity entity)
-        {
-            // Интерфейс базовой операции выдавливания.
-            var entityExtr = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_baseExtrusion);
-            if (entityExtr != null)
-            {
-                entityExtr.name = @"Выдавливание контактной части для пинов";
-                // Интерфейс свойств базовой операции выдавливания.
-                var extrusionDef = (ksBaseExtrusionDefinition)entityExtr.GetDefinition();
-                if (extrusionDef != null)
-                {
-                    extrusionDef.directionType = (short)Direction_Type.dtNormal;   // Направление выдавливания.
-                    extrusionDef.SetSideParam(true, (short)End_Type.etBlind, data[Parametr.BodyDepth] - 0.01);
-                    extrusionDef.SetThinParam(false, 0, 0, 0);  // Без тонкой стенки.
-                    extrusionDef.SetSketch(entity); // Эскиз операции выдавливания.
-                    entityExtr.SetAdvancedColor(Color.Black.ToArgb(), .8, .8, .8, .8, 100, .8);  // Цвет пинов.
-                    entityExtr.Create();    // Создать операцию.
                 }
             }
         }

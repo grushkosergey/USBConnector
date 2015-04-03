@@ -30,54 +30,30 @@ namespace KURS.Details
                     {
                         // Получим интерфейс базовой плоскости XOY.
                         var basePlane = (ksEntity)Part.GetDefaultEntity((short)Obj3dType.o3d_planeXOY);
-                        sketchDef.SetPlane(basePlane);	// Установим плоскость XOY базовой для эскиза.
-                        entitySketch.Create();			// Создадим эскиз.
+                        // Установим плоскость XOY базовой для эскиза.
+                        sketchDef.SetPlane(basePlane);
+                        // Создадим эскиз.
+                        entitySketch.Create();			
                         //Интерфейс редактора эскиза.
                         var sketchEdit = (ksDocument2D)sketchDef.BeginEdit();
 
-                        var radius = data[Parametr.CorpusHeight] / 2;   // Максимальный радиус для провода
-                        var rasstH = data[Parametr.BodyHeight] / 2;     //Расположение окружности по горизонтали
-                        var rasstW = data[Parametr.BodyWidth] / 2;  //Расположение окружности по вертикали
-
+                        // Максимальный радиус для провода
+                        var radius = data[Parametr.CorpusHeight] / 2;
+                        //Расположение окружности по горизонтали
+                        var rasstH = data[Parametr.BodyHeight] / 2;
+                        //Расположение окружности по вертикали
+                        var rasstW = data[Parametr.BodyWidth] / 2;  
 
                         //Окружность.
                         sketchEdit.ksCircle(rasstW, rasstH, radius, 1);
-
-                        sketchDef.EndEdit(); // Завершение редактирования эскиза.
-                        Extrusion(data, entitySketch); // Выдавить эскиз.
-
+                        // Завершение редактирования эскиза.
+                        sketchDef.EndEdit();
+                        // Выдавить эскиз.
+                        Extrusion(entitySketch, Direction_Type.dtReverse, 
+                            data[Parametr.CorpusDepth] + data[Parametr.WireLength], Color.Gray); 
                     }
                 }
             }
         }
-
-
-        /// <summary>
-        /// Выдавливание.
-        /// </summary>
-        /// <param name="data">Параметры разъема</param>
-        /// <param name="entity">Эскиз для выдавливания</param>
-        private void Extrusion(Dictionary<Parametr, double> data, ksEntity entity)
-        {
-            // Интерфейс базовой операции выдавливания.
-            var entityExtr = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_baseExtrusion);
-            if (entityExtr != null)
-            {
-                entityExtr.name = @"Выдавливание провода";
-                // Интерфейс свойств базовой операции выдавливания.
-                var extrusionDef = (ksBaseExtrusionDefinition)entityExtr.GetDefinition();
-                if (extrusionDef != null)
-                {
-                    extrusionDef.directionType = (short)Direction_Type.dtReverse;   // Направление выдавливания.
-                    extrusionDef.SetSideParam(false, (short)End_Type.etBlind, data[Parametr.CorpusDepth] + data[Parametr.WireLength]);
-                    extrusionDef.SetThinParam(false, 0, 0, 0);  // Без тонкой стенки.
-                    extrusionDef.SetSketch(entity); // Эскиз операции выдавливания.
-                    entityExtr.SetAdvancedColor(Color.Gray.ToArgb(), .2, .3, .9, .0, 5, .8);  // Цвет пинов.
-                    entityExtr.Create();    // Создать операцию.
-                }
-            }
-        }
-
-
     }
 }

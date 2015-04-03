@@ -9,6 +9,9 @@ namespace KURS.Details
 {
     internal class TMUSB : Detail
     {
+        private ksPart Part2;
+        private ksPart Part3;
+
         /// <summary>
         /// Построение провода.
         /// </summary>
@@ -16,8 +19,10 @@ namespace KURS.Details
         /// <param name="data">Параметры разъема</param>
         public override void Build(ksDocument3D doc3D, Dictionary<Parametr, double> data)
         {
-            var rW = (data[Parametr.BodyWidth] / 2) - 1.5; // Расчет растояния для расположения USB знака по центру, относительно ширины корпуса
-            var rD = (data[Parametr.CorpusDepth] / 2) + 6; // Расчет растояния для расположения USB знака по центру, относительно высоты корпуса
+            // Расчет растояния для расположения USB знака по центру, относительно ширины корпуса
+            var rW = (data[Parametr.BodyWidth] / 2) - 1.5;
+            // Расчет растояния для расположения USB знака по центру, относительно высоты корпуса
+            var rD = (data[Parametr.CorpusDepth] / 2) + 6; 
 
             Part = (ksPart)doc3D.GetPart((short)Part_Type.pTop_Part);	// Новый компонент.
             if (Part != null)
@@ -33,8 +38,10 @@ namespace KURS.Details
                     {
                         // Получим интерфейс базовой плоскости XOZ.
                         var basePlane = (ksEntity)Part.GetDefaultEntity((short)Obj3dType.o3d_planeXOZ);
-                        sketchDef.SetPlane(basePlane);	// Установим плоскость XOZ базовой для эскиза.
-                        entitySketch.Create();			// Создадим эскиз.
+                        // Установим плоскость XOZ базовой для эскиза.
+                        sketchDef.SetPlane(basePlane);
+                        // Создадим эскиз.
+                        entitySketch.Create();			
                         //Интерфейс редактора эскиза.
                         var sketchEdit = (ksDocument2D)sketchDef.BeginEdit();
 
@@ -68,9 +75,11 @@ namespace KURS.Details
                         sketchEdit.ksLineSeg(5.5 + rW, -1 + rD, 3.5 + rW, -1 + rD, 1);
                         //Соединяющая линия для нижней части
                         sketchEdit.ksLineSeg(1 + rW, -10 + rD, 2 + rW, -10 + rD, 1);
+                        // Завершение редактирования эскиза.
+                        sketchDef.EndEdit();
+                        // Выдавить эскиз.
+                        Extrusion(entitySketch, Direction_Type.dtNormal, data[Parametr.CorpusHeight] + 0.3, Color.Gray); 
 
-                        sketchDef.EndEdit(); // Завершение редактирования эскиза.
-                        Extrusion(data, entitySketch); // Выдавить эскиз.
 
                     }
                 }
@@ -100,7 +109,9 @@ namespace KURS.Details
                         //Окружность для левой части
                         sketchEdit.ksArcByAngle(-1.5 + rW, -4.5 + rD, 1, 0, 0, 1, 1);
                         sketchDef.EndEdit(); // Завершение редактирования эскиза.
-                        Extrusion(data, entitySketch2); // Выдавить эскиз.
+                        //Extrusion(data, entitySketch2); // Выдавить эскиз.
+                        Extrusion(entitySketch2, Direction_Type.dtNormal, data[Parametr.CorpusHeight] + 0.3, Color.Gray); // Выдавить эскиз.
+
 
                     }
                 }
@@ -128,37 +139,39 @@ namespace KURS.Details
                         sketchEdit.ksArcByAngle(1.5 + rW, -11.5 + rD, 2, 0, 0, 1, 1);
 
                         sketchDef.EndEdit(); // Завершение редактирования эскиза.
-                        Extrusion(data, entitySketch3); // Выдавить эскиз.
+                        //Extrusion(data, entitySketch3); // Выдавить эскиз.
+                        Extrusion(entitySketch3, Direction_Type.dtNormal, data[Parametr.CorpusHeight] + 0.3, Color.Gray); // Выдавить эскиз.
+
                     }
                 }
             }
         }
 
 
-        /// <summary>
-        /// Выдавливание.
-        /// </summary>
-        /// <param name="data">Параметры разъема</param>
-        /// <param name="entity">Эскиз для выдавливания</param>
-        private void Extrusion(Dictionary<Parametr, double> data, ksEntity entity)
-        {
-            // Интерфейс базовой операции выдавливания.
-            var entityExtr = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_baseExtrusion);
-            if (entityExtr != null)
-            {
-                entityExtr.name = @"Выдавливание знака USB";
-                // Интерфейс свойств базовой операции выдавливания.
-                var extrusionDef = (ksBaseExtrusionDefinition)entityExtr.GetDefinition();
-                if (extrusionDef != null)
-                {
-                    extrusionDef.directionType = (short)Direction_Type.dtNormal;   // Направление выдавливания.
-                    extrusionDef.SetSideParam(true, (short)End_Type.etBlind, data[Parametr.CorpusHeight] + 0.3);
-                    extrusionDef.SetThinParam(false, 0, 0, 0);  // Без тонкой стенки.
-                    extrusionDef.SetSketch(entity); // Эскиз операции выдавливания.
-                    entityExtr.SetAdvancedColor(Color.Gray.ToArgb(), .2, .3, .9, .0, 5, .8);  // Цвет пинов.
-                    entityExtr.Create();    // Создать операцию.
-                }
-            }
-        }
+        ///// <summary>
+        ///// Выдавливание.
+        ///// </summary>
+        ///// <param name="data">Параметры разъема</param>
+        ///// <param name="entity">Эскиз для выдавливания</param>
+        //private void Extrusion(Dictionary<Parametr, double> data, ksEntity entity)
+        //{
+        //    // Интерфейс базовой операции выдавливания.
+        //    var entityExtr = (ksEntity)Part.NewEntity((short)Obj3dType.o3d_baseExtrusion);
+        //    if (entityExtr != null)
+        //    {
+        //        entityExtr.name = @"Выдавливание знака USB";
+        //        // Интерфейс свойств базовой операции выдавливания.
+        //        var extrusionDef = (ksBaseExtrusionDefinition)entityExtr.GetDefinition();
+        //        if (extrusionDef != null)
+        //        {
+        //            extrusionDef.directionType = (short)Direction_Type.dtNormal;   // Направление выдавливания.
+        //            extrusionDef.SetSideParam(true, (short)End_Type.etBlind, data[Parametr.CorpusHeight] + 0.3);
+        //            extrusionDef.SetThinParam(false, 0, 0, 0);  // Без тонкой стенки.
+        //            extrusionDef.SetSketch(entity); // Эскиз операции выдавливания.
+        //            entityExtr.SetAdvancedColor(Color.Gray.ToArgb(), .2, .3, .9, .0, 5, .8);  // Цвет пинов.
+        //            entityExtr.Create();    // Создать операцию.
+        //        }
+        //    }
+        //}
     }
 }

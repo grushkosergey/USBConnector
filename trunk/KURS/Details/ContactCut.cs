@@ -9,6 +9,11 @@ namespace KURS.Details
 {
      internal class ContactCut : Detail
     {
+        // Толщина стенки корпуса
+        protected const double thickness = 0.5;
+        // Толщина контактной части
+        protected const double contactHeight = 1.5; 
+
         /// <summary>
         /// Построение эскиза для выреза под контактную часть.
         /// </summary>
@@ -16,7 +21,8 @@ namespace KURS.Details
         /// <param name="data">Параметры разъема</param>
         public override void Build(ksDocument3D doc3D, Dictionary<Parametr, double> data)
         {
-            Part = (ksPart)doc3D.GetPart((short)Part_Type.pTop_Part);	// Новый компонент.
+            // Новый компонент.
+            Part = (ksPart)doc3D.GetPart((short)Part_Type.pTop_Part);	
             if (Part != null)
             {
                 // Интерфейс создания эскиза.
@@ -30,19 +36,27 @@ namespace KURS.Details
                     {
                         // Получим интерфейс базовой плоскости XOY.
                         var basePlane = (ksEntity)Part.GetDefaultEntity((short)Obj3dType.o3d_planeXOY);
-                        sketchDef.SetPlane(basePlane);	// Установим плоскость XOY базовой для эскиза.
-                        entitySketch.Create();			// Создадим эскиз.
+                        // Установим плоскость XOY базовой для эскиза.
+                        sketchDef.SetPlane(basePlane);
+                        // Создадим эскиз.
+                        entitySketch.Create();			
                         //Интерфейс редактора эскиза.
                         var sketchEdit = (ksDocument2D)sketchDef.BeginEdit();
 
                         //Линии.
 
-                        sketchEdit.ksLineSeg(tolsh, tolsh, data[Parametr.BodyWidth] - tolsh, tolsh, 1);
-                        sketchEdit.ksLineSeg(data[Parametr.BodyWidth] - tolsh, tolsh, data[Parametr.BodyWidth] - tolsh, data[Parametr.BodyHeight] - tolsh, 1);
-                        sketchEdit.ksLineSeg(data[Parametr.BodyWidth] - tolsh, data[Parametr.BodyHeight] - tolsh, tolsh, data[Parametr.BodyHeight] - tolsh, 1);
-                        sketchEdit.ksLineSeg(tolsh, data[Parametr.BodyHeight] - tolsh, tolsh, tolsh, 1);
-                        sketchDef.EndEdit(); // Завершение редактирования эскиза.
-                        Extrusion(data, entitySketch); // Выдавить эскиз.
+                        sketchEdit.ksLineSeg(thickness, thickness, data[Parametr.BodyWidth] - thickness, thickness, 1);
+                        sketchEdit.ksLineSeg(data[Parametr.BodyWidth] - thickness, thickness, 
+                            data[Parametr.BodyWidth] - thickness, 
+                            data[Parametr.BodyHeight] - thickness, 1);
+                        sketchEdit.ksLineSeg(data[Parametr.BodyWidth] - thickness, 
+                            data[Parametr.BodyHeight] - thickness, thickness, 
+                            data[Parametr.BodyHeight] - thickness, 1);
+                        sketchEdit.ksLineSeg(thickness, data[Parametr.BodyHeight] - thickness, thickness, thickness, 1);
+                        // Завершение редактирования эскиза.
+                        sketchDef.EndEdit();
+                        // Выдавить эскиз.
+                        Extrusion(data, entitySketch); 
 
                     }
                 }
@@ -66,7 +80,8 @@ namespace KURS.Details
                 var extrusionDef = (ksCutExtrusionDefinition)entityExtr.GetDefinition();
                 if (extrusionDef != null)
                 {
-                    extrusionDef.directionType = (short)Direction_Type.dtReverse;   // Направление выдавливания.
+                    // Направление выдавливания.
+                    extrusionDef.directionType = (short)Direction_Type.dtReverse;   
                     extrusionDef.SetSideParam(false, (short)End_Type.etBlind, data[Parametr.BodyDepth]);
                     extrusionDef.SetThinParam(false, 0, 0, 0);  // Без тонкой стенки.
                     extrusionDef.SetSketch(entity); // Эскиз операции выдавливания.

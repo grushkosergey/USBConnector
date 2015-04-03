@@ -92,6 +92,7 @@
     <Compile Include="Details\ContactPartC.cs" />
     <Compile Include="Details\ContactPart.cs" />
     <Compile Include="Details\TMUSB.cs" />
+    <Compile Include="Details\USBbase.cs" />
     <Compile Include="Details\Wire.cs" />
     <Compile Include="Details\PinsC.cs" />
     <Compile Include="Details\Pins.cs" />
@@ -121,7 +122,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="USBBuilder.cs" />
+    <Compile Include="USBC.cs" />
+    <Compile Include="USBA.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -134,6 +136,7 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

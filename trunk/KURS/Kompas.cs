@@ -25,7 +25,6 @@ namespace KURS
         {
             if (KompasObject3D == null)
             {
-
                 var type = Type.GetTypeFromProgID("KOMPAS.Application.5");
                 KompasObject3D = (KompasObject) Activator.CreateInstance(type);
             }

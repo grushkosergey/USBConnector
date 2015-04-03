@@ -2,22 +2,23 @@
 using System.Drawing;
 using KURS.Enumerations;
 
+
+using System.Windows.Forms;
+using Kompas6API5;
+using KURS.Details;
+
 namespace KURS
 {
     /// <summary>
     /// Менеджер.
     /// </summary>
+    //private class Manager
     public class Manager
     {
         /// <summary>
-        /// Построитель разъема Type A.
+        /// Построитель разъема.
         /// </summary>
-        private readonly USBBuilder _usb = new USBBuilder();
-       
-        /// <summary>
-        /// Построитель разъема Type C.
-        /// </summary>
-        private readonly USBBuilderC _usbC = new USBBuilderC();
+        public USBbase USB { get; private set; }
 
         /// <summary>
         /// Параметры разъема.
@@ -29,27 +30,41 @@ namespace KURS
         /// </summary>
         public Kompas Kompas3D = new Kompas();
 
-        /// <summary>
-        /// Строит разъем в yказанном докyменте с yказанными параметрами Type A.
-        /// </summary>
-        public void BuildUSB()
+        public void CreateUSB(USBType usbType)
         {
-            _usb.BuildParts(Kompas3D.Document3D, Data.Parametrs);
+            USB = GetUSBInstance(usbType);
         }
 
         /// <summary>
-        /// Строит разъем в yказанном докyменте с yказанными параметрами Type C.
+        /// Строит разъем в yказанном докyменте с yказанными параметрами
         /// </summary>
-        public void BuildUSBC()
+        private USBbase GetUSBInstance(USBType usbType)
         {
-            _usbC.BuildParts(Kompas3D.Document3D, Data.Parametrs);
+            switch (usbType)
+            {
+                case USBType.TypeA:
+                    return new USBA();
+                case USBType.TypeC:
+                    return new USBC();
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Строит разъем в yказанном докyменте с yказанными параметрами
+        /// </summary>
+        public void BuildUSB()
+        {
+            USB.Parametrs = Data.Parametrs;
+            USB.Build(Kompas3D.Document3D);
         }
 
         /// <summary>
         /// Проверить правильность введенных данных
         /// </summary>
         /// <returns>Лист имен полей с ошибками</returns>
-        public Dictionary<Parametr,PointF> CheckValidation()
+        public Dictionary<Parametr, PointF> CheckValidation()
         {
             return Data.CheckValidData();
         }

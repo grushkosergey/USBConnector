@@ -18,7 +18,7 @@ namespace KURS
         /// <summary>
         /// Объект класса "Manager".
         /// </summary>
-        private readonly Manager _manager = new Manager();
+        private Manager _manager = new Manager();
 
         /// <summary>
         /// Лист TextBox.
@@ -81,6 +81,7 @@ namespace KURS
             {
                 throw new Exception(@" На форме нет ни одного элемента TextBox. ");
             }
+            TypeUSB.Text = TypeUSB.Items[0].ToString();
             // Установить параметры по-yмолчанию.
             linkDefault_LinkClicked(linkDefault, new EventArgs());
         }
@@ -108,7 +109,6 @@ namespace KURS
             }
             _manager.Data.Parametrs.Add(Parametr.BodyColor,
                 Convert.ToDouble(Enum.Parse(typeof(ColorList), BodyColor.Text)));
-
             return true;
         }
 
@@ -195,36 +195,18 @@ namespace KURS
             //        }
             //    }
             //    MessageBox.Show(nTest.ElapsedMilliseconds.ToString());
-           
+
             if (!ErrorsFound())
             {
-                //Построение разъема выбранного типа
-                if (TypeUSB.Text == TypeUSB.Items[0].ToString())
+                try
                 {
-
-                    try
-                    {
-                        _manager.Kompas3D.CreateDocument();
-                        _manager.BuildUSB();
-                    }
-                    catch (NullReferenceException ex)
-                    {
-                        MessageBox.Show(ex.Message, @"Ошибка", MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                    }
+                    _manager.Kompas3D.CreateDocument();
+                    _manager.BuildUSB();
                 }
-                else
+                catch (NullReferenceException ex)
                 {
-                    try
-                    {
-                        _manager.Kompas3D.CreateDocument();
-                        _manager.BuildUSBC();
-                    }
-                    catch (NullReferenceException ex)
-                    {
-                        MessageBox.Show(ex.Message, @"Ошибка", MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                    }
+                    MessageBox.Show(ex.Message, @"Ошибка", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
                 }
             }
         }
@@ -248,6 +230,24 @@ namespace KURS
             }
         }
 
+
+        private void DefaultParameters(object sender, EventArgs e)
+        {
+            _manager.Data.Parametrs.Clear();
+            TypeUSB.Text = TypeUSB.SelectedItem.ToString();
+
+            _manager.CreateUSB((USBType)TypeUSB.SelectedIndex);
+            _manager.USB.SetToDefault();
+
+            // Записать начальные значения в соответствyющие поля.
+            foreach (var control in _textBoxes)
+            {
+                (control as TextBox).Text =
+                    _manager.USB.Parametrs[(Parametr)Enum.Parse(typeof(Parametr),
+                    (control as TextBox).Name)].ToString();
+            }
+        }
+
         /// <summary>
         /// Возникает при нажатии на ссылкy "Значения по-yмолчанию".
         /// </summary>
@@ -255,36 +255,9 @@ namespace KURS
         /// <param name="e">Событие</param>
         private void linkDefault_LinkClicked(object sender, EventArgs e)
         {
-            if (TypeUSB.Text == TypeUSB.Items[1].ToString())
-            {
-                // Очистить предыдущие значения.
-                _manager.Data.Parametrs.Clear();
-                // Установить параметры по-yмолчанию.
-                _manager.Data.SetToDefaultC();
-                TypeUSB.Text = TypeUSB.Items[1].ToString();
-                //BodyColor.Text = BodyColor.Items[0].ToString();
-            }
-            else
-            {
-                // Очистить предыдущие значения.
-                _manager.Data.Parametrs.Clear();
-                // Установить параметры по-yмолчанию.
-                _manager.Data.SetToDefault();
-                TypeUSB.Text = TypeUSB.Items[0].ToString();
-                //BodyColor.Text = BodyColor.Items[0].ToString();
-            }
-
-            // Записать начальные значения в соответствyющие поля.
-            //
-            foreach (var control in _textBoxes)
-            {
-                (control as TextBox).Text =
-                    _manager.Data.Parametrs[(Parametr)Enum.Parse(typeof(Parametr),
-                    (control as TextBox).Name)].ToString();
-            }
+            DefaultParameters(linkDefault, e);
             BodyColor.Text = BodyColor.Items[0].ToString();
         }
-
 
         /// <summary>
         /// Возникает при выборе типа разъема.
@@ -293,32 +266,7 @@ namespace KURS
         /// <param name="e">Событие</param>
         private void TypeUSB_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (TypeUSB.Text == TypeUSB.Items[1].ToString())
-            {
-                // Очистить предыдущие значения.
-                _manager.Data.Parametrs.Clear();
-                // Установить параметры по-yмолчанию.
-                _manager.Data.SetToDefaultC();
-                TypeUSB.Text = TypeUSB.Items[1].ToString();
-                //BodyColor.Text = BodyColor.Items[1].ToString();
-            }
-            else
-            {
-                // Очистить предыдущие значения.
-                _manager.Data.Parametrs.Clear();
-                // Установить параметры по-yмолчанию.
-                _manager.Data.SetToDefault();
-                TypeUSB.Text = TypeUSB.Items[0].ToString();
-                //BodyColor.Text = BodyColor.Items[0].ToString();
-            }
-
-            // Записать начальные значения в соответствyющие поля.
-            foreach (var control in _textBoxes)
-            {
-                (control as TextBox).Text =
-                    _manager.Data.Parametrs[(Parametr)Enum.Parse(typeof(Parametr),
-                    (control as TextBox).Name)].ToString();
-            }
+            DefaultParameters(linkDefault, e);
         }
 
         /// <summary>
@@ -347,12 +295,14 @@ namespace KURS
             }
         }
 
-        /// <summary>
-        /// Возникает при нажатии кнопки.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void TextBox_KeyPress(object sender, KeyPressEventArgs e)
+
+
+
+
+
+
+
+        private void TextBox_KeyPress_Test(object sender, KeyPressEventArgs e)
         {
             var textBox = sender as TextBox;
             var regex = new Regex(@"[\b]|[0-9]");
@@ -361,12 +311,7 @@ namespace KURS
             {
                 _nonNumberEntered = true;
             }
-            // Если запятая не первая и одна.
-            if (!string.IsNullOrEmpty(textBox.Text) &&
-                e.KeyChar == ',' && !textBox.Text.Contains(','))
-            {
-                return;
-            }
+            
             // Проверить флаг прежде чем произойдет событие KеyDown.
             if (_nonNumberEntered)
             {
@@ -375,12 +320,23 @@ namespace KURS
             }
         }
 
+        private void TextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            KeyPressHendling(sender, e, !((TextBox)sender).Text.Contains(','));
+        }
+
+
         /// <summary>
         /// Возникает при нажатии кнопки для пинов.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void TextBox_KeyPress_Pins(object sender, KeyPressEventArgs e)
+        {
+            KeyPressHendling(sender, e, ((TextBox)sender).Text.Contains(','));
+        }
+
+        private void KeyPressHendling(object sender, KeyPressEventArgs e, bool isTextBoxContainsComma)
         {
             var textBox = sender as TextBox;
             var regex = new Regex(@"[\b]|[0-9]");
@@ -391,7 +347,7 @@ namespace KURS
             }
             // Запрет на ввод запятой.
             if (!string.IsNullOrEmpty(textBox.Text) &&
-                e.KeyChar == ',' && textBox.Text.Contains(','))
+                e.KeyChar == ',' && isTextBoxContainsComma)
             {
                 return;
             }
@@ -402,6 +358,5 @@ namespace KURS
                 e.Handled = true;
             }
         }
-
     }
 }
